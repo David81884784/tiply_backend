@@ -1,7 +1,7 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 
@@ -34,7 +34,7 @@ app.use(cors({
 app.use('/auth', authRoutes);
 
 // --- MongoDB ---
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI; // ia din .env
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('✅ Conectat la MongoDB'))
   .catch(err => console.error('❌ Eroare MongoDB:', err));
