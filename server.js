@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 
 // --- CORS Setup pentru frontend-ul pe Vercel ---
 const allowedOrigins = [
-  'https://tiply-frontend-2xgc-git-main-davids-projects-a9354ccb.vercel.app',
+  'https://tiply-2xgc.vercel.app',
   'http://localhost:5173' // dacă testezi local
 ];
 
