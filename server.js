@@ -10,43 +10,29 @@ const app = express();
 // --- Middleware ---
 app.use(express.json());
 
-// --- CORS ---
+// --- CORS complet pentru preflight ---
 const allowedOrigins = [
   "https://tiply-2xgc.vercel.app",
   "https://tiply-frontend-2xgc-git-main-davids-projects-a9354ccb.vercel.app",
   "http://localhost:5173"
 ];
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // Permite cereri fără origin (preflight sau server-side)
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.warn("❌ CORS blocat:", origin);
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-// --- Preflight pentru toate rutele ---
-app.options("*", cors());
-
-// --- Redirecționare frontend pentru register/login ---
-app.post("/register", (req, res, next) => {
-  req.url = "/auth/register";
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  // Răspunde imediat la OPTIONS (preflight)
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
   next();
 });
 
-app.post("/login", (req, res, next) => {
-  req.url = "/auth/login";
-  next();
-});
-
-// --- Routes ---
+// --- Routes reale fără redirect ---
 app.use("/auth", authRoutes);
 
 // --- Endpoint test ---
