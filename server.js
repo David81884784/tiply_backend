@@ -4,7 +4,6 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
-
 const app = express();
 
 // --- Middleware ---
@@ -14,12 +13,12 @@ app.use(express.json());
 const allowedOrigins = [
   'https://tiply-2xgc.vercel.app', // frontend live
   'https://tiply-frontend-2xgc-git-main-davids-projects-a9354ccb.vercel.app', // preview build
-  'http://localhost:5173' // local dev
+  'http://localhost:5173' // pentru dezvoltare locală
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permite cereri fără origin (ex: curl, server-side)
+    // Permite cereri fără Origin (ex: preflight, server-side)
     if (!origin) return callback(null, true);
 
     // Permite doar domeniile din lista de mai sus
@@ -34,6 +33,18 @@ app.use(cors({
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// --- Redirecționare pentru /register și /login ---
+// (ca să funcționeze cererile frontendului existent)
+app.post('/register', (req, res, next) => {
+  req.url = '/auth/register';
+  next();
+});
+
+app.post('/login', (req, res, next) => {
+  req.url = '/auth/login';
+  next();
+});
 
 // --- Routes ---
 app.use('/auth', authRoutes);
