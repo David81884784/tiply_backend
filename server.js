@@ -4,49 +4,50 @@ const cors = require("cors");
 require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
-
 const app = express();
 
-// Middleware JSON
+// --- Middleware pentru parsare JSON ---
 app.use(express.json());
 
-// --- CORS complet pentru Vercel frontend ---
+// --- CORS configurat corect pentru Vercel ---
 const allowedOrigins = [
-  "https://tiply-2xgc.vercel.app",
-  "https://tiply-backend-ocpqbusff-davids-projects-a9354ccb.vercel.app",
-  "http://localhost:5173"
+  "https://tiply-2xgc.vercel.app", // Frontend-ul de pe Vercel
+  "http://localhost:5173"          // Pentru testare locală
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
+    // Permite cereri fără "origin" (de ex. server-side)
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
+    } else {
+      console.warn("❌ CORS blocat:", origin);
+      return callback(new Error("Not allowed by CORS"));
     }
-    console.warn("❌ CORS blocat:", origin);
-    return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Răspunde la OPTIONS pentru toate rutele
+// --- Preflight pentru toate rutele ---
 app.options("*", cors());
 
-// --- Routes fără redirect-uri ---
+// --- Rute principale ---
 app.use("/auth", authRoutes);
 
-// Endpoint test
+// --- Endpoint test ---
 app.get("/", (req, res) => {
-  res.send("✅ Backend funcționează cu CORS pe Vercel");
+  res.send("✅ Backend funcționează corect pe Vercel!");
 });
 
-// --- MongoDB ---
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+// --- Conectare la MongoDB ---
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log("✅ Conectat la MongoDB"))
-  .catch(err => console.error("❌ Eroare MongoDB:", err));
+  .catch((err) => console.error("❌ Eroare MongoDB:", err));
 
-// --- Start server ---
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server rulează pe port ${PORT}`));
+// --- Export pentru Vercel ---
+module.exports = app;
