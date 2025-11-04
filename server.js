@@ -1,41 +1,42 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 
-const authRoutes = require('./routes/auth');
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
-// --- Middleware ---
+// Middleware JSON
 app.use(express.json());
 
-// --- CORS complet pentru preflight ---
+// --- CORS complet pentru Vercel frontend ---
 const allowedOrigins = [
   "https://tiply-2xgc.vercel.app",
-  "https://tiply-frontend-2xgc-git-main-davids-projects-a9354ccb.vercel.app",
+  "https://tiply-backend-ocpqbusff-davids-projects-a9354ccb.vercel.app",
   "http://localhost:5173"
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin || "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-  }
-  // Răspunde imediat la OPTIONS (preflight)
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    console.warn("❌ CORS blocat:", origin);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-// --- Routes reale fără redirect ---
+// Răspunde la OPTIONS pentru toate rutele
+app.options("*", cors());
+
+// --- Routes fără redirect-uri ---
 app.use("/auth", authRoutes);
 
-// --- Endpoint test ---
+// Endpoint test
 app.get("/", (req, res) => {
   res.send("✅ Backend funcționează cu CORS pe Vercel");
 });
